@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load("RandomForest_model.pkl")
+model = joblib.load("LogisticRegression_model.pkl")
 
 st.set_page_config(page_title="Fake Profile Detector", layout="centered")
 st.title("🧠 Fake Profile Detector")
