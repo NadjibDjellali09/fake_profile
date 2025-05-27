@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 # Load trained model
-model = joblib.load("RandomForest_model.pkl")
+model = joblib.load("LogisticRegression_model.pkl")
 
 # Title
 st.title("🕵️‍♂️ Fake Profile Detector")
