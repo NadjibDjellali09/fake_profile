@@ -2,54 +2,56 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load the trained model
+# Load model
 model = joblib.load("LogisticRegression_model.pkl")
 
-# App title
-st.title("🔍 Fake Profile Detection App")
+st.title("🔍 Fake Profile Detection")
 
-# Description
-st.write("Enter Instagram-like profile details to detect if it's likely **Fake** or **Real**.")
+st.write("Fill in the profile details to predict if it's likely a fake account.")
 
-# Sidebar inputs
+# Define form
 with st.form("profile_form"):
-    flw = st.number_input("Followers (flw)", min_value=0)
-    pos = st.number_input("Posts (pos)", min_value=0)
-    lt = st.number_input("Likes total (lt)", min_value=0)
-    erl = st.number_input("Engagement real likes (erl)", min_value=0)
-    erc = st.number_input("Engagement real comments (erc)", min_value=0)
+    flg = st.checkbox("flg (e.g. has flag?)")
+    cz = st.checkbox("cz")
+    bl = st.checkbox("bl")
+    pic = st.checkbox("pic (has profile picture?)")
+    ni = st.checkbox("ni")
+    lin = st.checkbox("lin")
+    pr = st.checkbox("pr (private account?)")
+    hc = st.checkbox("hc")
+    fo = st.checkbox("fo")
+    cs = st.checkbox("cs")
+    cl = st.checkbox("cl")
+    pi = st.checkbox("pi")
 
     submitted = st.form_submit_button("Predict")
 
-# Process input and make prediction
 if submitted:
     try:
-        # Feature engineering (same as training)
+        # Create dataframe with all required fields
         input_data = pd.DataFrame([{
-            "flw": flw,
-            "pos": pos,
-            "lt": lt,
-            "erl": erl,
-            "erc": erc,
-            "followers_per_post": flw / (pos + 1),
-            "likes_per_follower": lt / (flw + 1),
-            "engagement_rate": (erl + erc) / (flw + 1)
-        }])[[
-            "flw", "pos", "lt", "erl", "erc",
-            "followers_per_post", "likes_per_follower", "engagement_rate"
-        ]]
+            'flg': int(flg),
+            'cz': int(cz),
+            'bl': int(bl),
+            'pic': int(pic),
+            'ni': int(ni),
+            'lin': int(lin),
+            'pr': int(pr),
+            'hc': int(hc),
+            'fo': int(fo),
+            'cs': int(cs),
+            'cl': int(cl),
+            'pi': int(pi)
+        }])
 
-        # Predict
         prediction = model.predict(input_data)[0]
         proba = model.predict_proba(input_data)[0][1]
 
-        # Output result
         if prediction == 1:
-            st.error(f"❌ Prediction: Likely a **FAKE** profile (Confidence: {proba:.2%})")
+            st.error(f"❌ Fake Profile Detected! (Confidence: {proba:.2%})")
         else:
-            st.success(f"✅ Prediction: Likely a **REAL** profile (Confidence: {1 - proba:.2%})")
+            st.success(f"✅ Real Profile Detected! (Confidence: {1 - proba:.2%})")
 
     except Exception as e:
-        st.error("❌ An error occurred during prediction. Make sure all fields are filled correctly.")
+        st.error("❌ An error occurred during prediction. Please check your inputs.")
         st.exception(e)
-
