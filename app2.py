@@ -1,54 +1,47 @@
 import streamlit as st
-import joblib
-import numpy as np
 import pandas as pd
+import joblib
 
-# Load trained model
+# Load the trained model
 model = joblib.load("LogisticRegression_model.pkl")
 
-# Title
-st.title("🕵️‍♂️ Fake Profile Detector")
-st.markdown("Enter profile statistics to predict if it's a fake account.")
+st.set_page_config(page_title="Fake Profile Detector", layout="centered")
+st.title("🕵️‍♂️ Fake Profile Detection App")
+st.markdown("Enter Instagram profile details to predict if it's **Fake** or **Real**.")
 
-# Input form
-with st.form("profile_form"):
-    flw = st.number_input("Number of Followers", min_value=0)
-    flg = st.number_input("Number of Following", min_value=0)
-    pos = st.number_input("Number of Posts", min_value=0)
-    lt = st.number_input("Number of Likes Total", min_value=0)
-    cmt = st.number_input("Number of Comments Total", min_value=0)
-    erl = st.number_input("Likes per post (avg)", min_value=0.0)
-    erc = st.number_input("Comments per post (avg)", min_value=0.0)
-    
-    submitted = st.form_submit_button("Predict")
+# Collect input features
+flw = st.number_input("Number of Followers (flw)", min_value=0)
+pos = st.number_input("Number of Posts (pos)", min_value=0)
+lt = st.number_input("Total Likes (lt)", min_value=0)
+erl = st.number_input("Engagement Rate - Likes (erl)", min_value=0)
+erc = st.number_input("Engagement Rate - Comments (erc)", min_value=0)
 
-# Prediction logic
-if submitted:
-    # Feature engineering (same as training)
-    followers_per_post = flw / (pos + 1)
-    likes_per_follower = lt / (flw + 1)
-    engagement_rate = (erl + erc) / (flw + 1)
+# Calculate engineered features
+followers_per_post = flw / (pos + 1)
+likes_per_follower = lt / (flw + 1)
+engagement_rate = (erl + erc) / (flw + 1)
 
-    # Create DataFrame
-    input_data = pd.DataFrame([{
-        "flw": flw,
-        "flg": flg,
-        "pos": pos,
-        "lt": lt,
-        "cmt": cmt,
-        "erl": erl,
-        "erc": erc,
-        "followers_per_post": followers_per_post,
-        "likes_per_follower": likes_per_follower,
-        "engagement_rate": engagement_rate
-    }])
+# Construct input DataFrame for prediction
+input_data = pd.DataFrame([{
+    "flw": flw,
+    "pos": pos,
+    "lt": lt,
+    "erl": erl,
+    "erc": erc,
+    "followers_per_post": followers_per_post,
+    "likes_per_follower": likes_per_follower,
+    "engagement_rate": engagement_rate
+}])
 
-    # Predict
-    prediction = model.predict(input_data)[0]
-    prob = model.predict_proba(input_data)[0][1]
-
-    # Show result
-    if prediction == 1:
-        st.error(f" Fake Profile Detected with probability {prob:.2f}")
-    else:
-        st.success(f" Real Profile Detected with probability {1 - prob:.2f}")
+# Predict and display result
+if st.button("🔍 Predict"):
+    try:
+        prediction = model.predict(input_data)[0]
+        prob = model.predict_proba(input_data)[0][1]  # Probability of class 1 (fake)
+        
+        if prediction == 1:
+            st.error(f"⚠️ This is likely a **Fake Profile**. Confidence: {prob:.2%}")
+        else:
+            st.success(f"✅ This is likely a **Real Profile**. Confidence: {1 - prob:.2%}")
+    except Exception as e:
+        st.exception("❌ An error occurred during prediction. Make sure all fields are filled correctly.")
